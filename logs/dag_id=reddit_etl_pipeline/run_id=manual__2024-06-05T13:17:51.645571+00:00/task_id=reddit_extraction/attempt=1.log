@@ -1,0 +1,47 @@
+[2024-06-05T13:17:52.685+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-06-05T13:17:52.695+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: reddit_etl_pipeline.reddit_extraction manual__2024-06-05T13:17:51.645571+00:00 [queued]>
+[2024-06-05T13:17:52.699+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: reddit_etl_pipeline.reddit_extraction manual__2024-06-05T13:17:51.645571+00:00 [queued]>
+[2024-06-05T13:17:52.700+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-06-05T13:17:52.705+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): reddit_extraction> on 2024-06-05 13:17:51.645571+00:00
+[2024-06-05T13:17:52.708+0000] {standard_task_runner.py:63} INFO - Started process 72 to run task
+[2024-06-05T13:17:52.711+0000] {standard_task_runner.py:90} INFO - Running: ['airflow', 'tasks', 'run', 'reddit_etl_pipeline', 'reddit_extraction', 'manual__2024-06-05T13:17:51.645571+00:00', '--job-id', '13', '--raw', '--subdir', 'DAGS_FOLDER/reddit_dag.py', '--cfg-path', '/tmp/tmp81uqm43y']
+[2024-06-05T13:17:52.713+0000] {standard_task_runner.py:91} INFO - Job 13: Subtask reddit_extraction
+[2024-06-05T13:17:52.739+0000] {task_command.py:426} INFO - Running <TaskInstance: reddit_etl_pipeline.reddit_extraction manual__2024-06-05T13:17:51.645571+00:00 [running]> on host 59ea7148f4e9
+[2024-06-05T13:17:52.782+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='Mohith' AIRFLOW_CTX_DAG_ID='reddit_etl_pipeline' AIRFLOW_CTX_TASK_ID='reddit_extraction' AIRFLOW_CTX_EXECUTION_DATE='2024-06-05T13:17:51.645571+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-06-05T13:17:51.645571+00:00'
+[2024-06-05T13:17:52.783+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-06-05T13:17:52.791+0000] {logging_mixin.py:188} INFO - Connected to Reddit!
+[2024-06-05T13:17:53.398+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-06-05T13:17:53.399+0000] {taskinstance.py:2905} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/models/taskinstance.py", line 465, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/models/taskinstance.py", line 432, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/models/baseoperator.py", line 400, in wrapper
+    return func(self, *args, **kwargs)
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 235, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 252, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/pipelines/reddit_pipeline.py", line 19, in reddit_pipeline
+    load_data_to_csv(post_df, path=f'{OUTPUT_PATH}/{file_name}.csv')
+  File "/opt/airflow/etls/reddit_etl.py", line 41, in load_data_to_csv
+    data.to_csv(path, index=False)
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/core/generic.py", line 3967, in to_csv
+    return DataFrameRenderer(formatter).to_csv(
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/formats/format.py", line 1014, in to_csv
+    csv_formatter.save()
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/formats/csvs.py", line 251, in save
+    with get_handle(
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/common.py", line 749, in get_handle
+    check_parent_directory(str(handle))
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/common.py", line 616, in check_parent_directory
+    raise OSError(rf"Cannot save file into a non-existent directory: '{parent}'")
+OSError: Cannot save file into a non-existent directory: '/opt/airflow/data/output'
+[2024-06-05T13:17:53.417+0000] {taskinstance.py:1206} INFO - Marking task as FAILED. dag_id=reddit_etl_pipeline, task_id=reddit_extraction, run_id=manual__2024-06-05T13:17:51.645571+00:00, execution_date=20240605T131751, start_date=20240605T131752, end_date=20240605T131753
+[2024-06-05T13:17:53.428+0000] {standard_task_runner.py:110} ERROR - Failed to execute job 13 for task reddit_extraction (Cannot save file into a non-existent directory: '/opt/airflow/data/output'; 72)
+[2024-06-05T13:17:53.460+0000] {local_task_job_runner.py:240} INFO - Task exited with return code 1
+[2024-06-05T13:17:53.473+0000] {taskinstance.py:3498} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-06-05T13:17:53.474+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

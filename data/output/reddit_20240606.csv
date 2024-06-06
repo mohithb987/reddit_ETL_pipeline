@@ -1,0 +1,233 @@
+id,title,score,selftext,num_comments,author,created_utc,url,over_18,edited,spoiler,stickied
+1d8vswz,Tobiko (creators of SQLMesh and SQLGlot) raises $17.3 Series A to take on dbt,95,,19,CheerMan99,2024-06-05 17:36:08,https://techcrunch.com/2024/06/05/with-21-8m-in-funding-tobiko-aims-to-build-a-modern-data-platform/,False,False,False,False
+1d92m2s,What are some rarely explored niches in data engineering?,58,"We all know that typically SQL, Python (or another programming language), Spark, data modelling, security, privacy compliance, pipeline setup, alerts, etc are part of the general data engineering gist. 
+
+What would some of rarely explored niches be?",56,Happy-Malfunction,2024-06-05 22:20:05,https://www.reddit.com/r/dataengineering/comments/1d92m2s/what_are_some_rarely_explored_niches_in_data/,False,False,False,False
+1d8zegm,What's the biggest bodge you ever implemented?,19,"Every so often you need to do something that's *not really how it's supposed to be done*, but for whatever reasons (time constraints, budget constraints, technology limitations e.t.c) that's what you end up doing. What big ones do people have? What haunts you to this day? What bodge now underpins the entire business and is somehow the most reliable thing you ever did?",8,konwiddak,2024-06-05 20:03:33,https://www.reddit.com/r/dataengineering/comments/1d8zegm/whats_the_biggest_bodge_you_ever_implemented/,False,False,False,False
+1d92cm0,"Discussion: I built a tool for analyzing SQL Server indexes over time...storing billions of records. If you had to build something like this...what Azure services would you use, if any?",17,"So I've already built the system and it's been running perfectly for months and it's served our needs, so there's really no reason to re-build it.
+
+BUT...I'm trying to improve my data engineering skills, so I'm using this as a real world example scenario to see how some of you may have chosen to build this if it was assigned to you instead.
+
+++++++++++++++++++++++++++++++++++++
+
+The project:
+
+You have hundreds of on-prem SQL Server databases, each with thousands of indexes...A total of around 4 million indexes. You need come up with a way to keep track of index usage over time to identify things like over/under utilization, no usage, change in behavior, etc.
+
+This means taking a snapshot of all the usage statistics for all 4 million indexes multiple times a day across hundreds of SQL Server databases.
+
+On top of that...the system needs to be easily queryable and run reasonably fast in order to generate reports and lists of indexes to drop, look into, etc.
+
+I'm not very familiar with Azure services, or any cloud services for that matter, so I built the whole thing on plain ol' SQL Server.
+
+As of now, it doesn't really _need_ to be on SQL Server. Theoretically it could be stored anywhere as long as it's queryable, can build reports off it, generate lists, etc.
+
+++++++++++++++++++++++++++++++++++++
+
+Here's what I ended up designing...
+
+A PowerShell service which queries each database in parallel, grabbing the index stats snapshot. It then pushes those stats to a stored proc via a table parameter with a custom table type.
+
+The stored proc compares the new snapshot with the old snapshot, calculates the deltas (SQL Sever stores everything as counters rather than time-based stats) and then updates the stats table (which is a temporal table, so all changes get logged).
+
+The history table behind the temporal table uses a clustered columnstore index for performance and data compression and the temporal table is configured to only keep 6 months worth of history (built in feature of temporal tables), so pruning is built in.
+
+I didn't want to normalize it _too_ much, but I did create an index metadata table where things like index settings, name, columns, etc are stored separate from the stats.
+
+So far...its relatively simple to query, only two tables...metadata and stats, both of which are temporal tables so you can grab history as needed. And as long as the queries are written well...even queries across ALL indexes and databases only takes maybe 15-30 seconds to get something like ""give me the average daily read and write count per index for the last 60 days"".
+
+And due to the clustered columnstore index...it's only taking up about 85GB for 2B records, which is around 6 months worth of history.
+
+++++++++++++++++++++++++++++++++++++
+
+The first version of this was actually built on Splunk...however, once I'd loaded a few hundred million records into the splunk index...even queries using only streaming aggregates performed horribly when run across all databases.
+
+Trying to run a `stats` command in splunk across 4 million buckets just kept resulting in running out of memory. I even reached out to some developers _at_ splunk, and they told me there's not much you can do.
+
+I even built two versions of the Splunk implementation...one where I just push the stats snapshots directly to Splunk and calculate the deltas on the fly. As well as another version that used a middle-man SQL database to calculate the deltas and only the deltas were inserted into Splunk. And I tested with both events and metrics...nothing performed well.",4,chadbaldwin,2024-06-05 22:08:19,https://www.reddit.com/r/dataengineering/comments/1d92cm0/discussion_i_built_a_tool_for_analyzing_sql/,False,False,False,False
+1d99qpf,Handling technical debt as your company grows in data maturity?,15,"A common pattern I keep seeing in our industry post-cloud:
+1. Start off with a transactional database as it's often business critical.
+2. Engineers build infrastructure with emphasis on product or ingestion, but all centered around transactions.
+3. Eventually the company wants to start asking questions about their transactions, and initially do simple queries on the transactional database.
+4. Need for analytics expands, so they start replicating into an analytical database (typically data lake with warehouse on top).
+5. Because so many request for analytics are starting to grow, the data team looks into reporting and dashboards, essentially surfacing the data to the wider business.
+
+Right at this stage is where things blow up. The first six months are seen as a huge win because you ""democratized data"" but the success is short lived. Soon everyone in the business starts noticing the issues with the data. You spend more time being reactionary and fixing things, than actually building/improving infrastructure.
+
+I experienced this at the last company I was at. My colleague at my new job experienced this at a previous company. And I've talked to many other peers in the space where this happened to them.
+
+How can you avoid this ""trap"" in data? Is it focusing on data modeling earlier? Hiring a data engineer before implementing the analytical database? Not rushing into reporting and dashboards too quickly?
+
+Or is this just a ""necessary evil"" of growing in data maturity in today's industry? From talking to some data architect veterans, it seems like this problem was completely avoided in the on-prem data warehouse days given how much time and  money was invested upfront.
+",5,on_the_mark_data,2024-06-06 04:25:39,https://www.reddit.com/r/dataengineering/comments/1d99qpf/handling_technical_debt_as_your_company_grows_in/,False,False,False,False
+1d8nkvi,How to just sit back and enjoy,14,"Hi guys,
+
+I need some advice, and I have a feeling many motivated professionals struggle with this too.
+
+I am a highly motivated and disciplined person. I work as a data engineer (2YE), and I mainly use SQL and Databricks for building data pipelines. I specifically specialize in complex data migrations. 
+
+I also have just started my own company with a good friend. It's an AI-based application written completely in Python.
+
+I don't have a background in computer science, but Innovation Science and Data science. That's why I'm really proud of myself if I'm able to solve some medium level leetcode questions. 
+
+But my motivation and discipline are going to cost me my mental well-being. Right now I'm on a holiday, and I have this irrational fear of losing my skills if I haven't written any code in 2 days or so. I know this is ridiculous, but I just can't enjoy my holiday and feel like I HAVE TO do some leetcode to maintain my skills.
+
+Does anyone struggle with this too? What did you do to find some peace? How can I get rid of this absurd, irrational fear. 
+
+Tldr: how the fuck can I chill out and don't think about coding. ",11,DarthDatar-4058,2024-06-05 11:26:48,https://www.reddit.com/r/dataengineering/comments/1d8nkvi/how_to_just_sit_back_and_enjoy/,False,False,False,False
+1d8vlu8,Use Iceberg as a database ,8,"We are building a small chatbot house which records rather unimportant data from employees. Should I straight up use Iceberg (aws athena) as a database, as opposed to a postgres, etc?",8,gautiexe,2024-06-05 17:27:57,https://www.reddit.com/r/dataengineering/comments/1d8vlu8/use_iceberg_as_a_database/,False,False,False,False
+1d9crbf,Why do I keep seeing iceberg?,9,"Hi everyone, I’m new to data engineering (was using glue catalog over s3 with crawlers and redshift with spectrum), digging into data lakes. I keep seeing people praising/learning iceberg, why is it so popular here even though: 1) delta lake seems to be faster
+2) hudi seems to have bigger community and more features",3,muslimbeibytuly,2024-06-06 07:47:05,https://www.reddit.com/r/dataengineering/comments/1d9crbf/why_do_i_keep_seeing_iceberg/,False,False,False,False
+1d8wgm4,Has anyone had any luck connecting great expectations to MS SQL?,9,"
+
+I tried running through the documentation here:   
+[https://docs.greatexpectations.io/docs/oss/get\_started/get\_started\_with\_gx\_and\_sql](https://docs.greatexpectations.io/docs/oss/get_started/get_started_with_gx_and_sql) and had no luck, I kept getting errors on column collection, so I'm going to be using GE with dataframes, but when trying to compare dataframes, the best way it seems to be able to do that is do a compare with pandas and create a batch request and expectation suite where I expect a table with zero rows, since I see no comparison ""expectations"". 
+
+This doesn't seem/feel like the right way to be doing this. 
+
+Is there a good repo out there with great expectations examples using ms sql? Not much is coming up through a google. Thanks in advance!",5,octacon100,2024-06-05 18:03:13,https://www.reddit.com/r/dataengineering/comments/1d8wgm4/has_anyone_had_any_luck_connecting_great/,False,False,False,False
+1d937ac,Use case for duckdb,9,"I am in the process of rebuilding some of our data pipelines in python. We currently use alteryx for this process but the fuzzy matching process takes about 7 hours to run. 
+
+1. Would this be a good use case of using duckdb. Bring the data, from ms SQL server, via pyodbc, load to a pandas data frame then create a table in duckdb. Attempt the fuzzy matching in duckdb then load back to pandas then to Ms SQL server. 
+
+2. What are some faster ways to load a data frame from Ms SQL server to a pandas data frame. One of the tables I bring in has about 9 million rows and takes around two minutes to load to a pandas data frame. I tried polars but the difference was not that significant. 
+
+
+Thanks in advance",5,dangeroushabits2,2024-06-05 22:46:00,https://www.reddit.com/r/dataengineering/comments/1d937ac/use_case_for_duckdb/,False,False,False,False
+1d8ttc7,Starting a new data engineering project - what does your repo look like?,6,"Hi there,
+
+I'm just starting some data engineering and analysis at the company. Small company, i'm the Director of Engineering (re: the only hands on developer). 
+
+They started off with a handful of SQL scripts in a postgresdb, along with triggers and the like. However I have a new project starting. Day one will just be a set of python scripts and some bigquery materialized tables on top of some cloud data storage. Nothing crazy. I think. I'm trying to avoid shiny object syndrome and get to clean data as fast as possible.
+
+Ultimately I'm going to/would like to start using application centric tools such as dbt/dagster and maybe even Google DataFusion no-code for some of the simple stuff.  I'm a solo dev so I'll be able to do some simple modeling and i'm familiar with most data practices. 
+
+So.. How does one structure a data-engineering repo these days?
+
+",3,nycstartupcto,2024-06-05 16:13:38,https://www.reddit.com/r/dataengineering/comments/1d8ttc7/starting_a_new_data_engineering_project_what_does/,False,False,False,False
+1d8p2a6,Airflow DAG task granularity?,5,"It’a well-known best practice for a function to have exactly one job. What about airflow tasks?
+
+By what principle do you split functionality in tasks?
+
+For example, if it’s a basic ETL, is it better for the DAG to have three parts? ",1,kerokero134340,2024-06-05 12:46:33,https://www.reddit.com/r/dataengineering/comments/1d8p2a6/airflow_dag_task_granularity/,False,False,False,False
+1d99ujo,Data modeling ,3,"Hi guys, I have in the process for an analytics engineer position at a company. There is a data modeling stage which is for 1hr with senior data engineers of the team. 
+
+I am going through Kimball's data modeling steps and practicing. However, I wanted to check if I would be required to do ERD diagrams and stuff as well? What generally  gets asked in a data modeling round. Does it involve designing production database modelling or more about analytics data model 
+
+The role majorly deals with snowflake and helping in financial reporting with accurate data. ",1,Beginner_4646,2024-06-06 04:32:06,https://www.reddit.com/r/dataengineering/comments/1d99ujo/data_modeling/,False,False,False,False
+1d97hvp,Data Archival Strategy ,3,"Hello DEs,
+
+Our team has an Infra of Redshift and S3 as our datalake with 100s of tables and millions of records on each table. In order to archive the data, I came up with two approaches:
+
+1. Redshift based: In this approach, we will have a central confg table which has each and every table entry that needs to be archived along with the column on which the archive should happen i.e. date column.
+
+There will be a stored procedure that loops through these entries, generates a SQL to unload the data to S3 archive bucket and purge the data in the tables. Planning to schedule this every x days.
+
+2. Dynamodb+ AWS Step function: Here, we will maintain the config in dynamodb, loop through each entry using step function and there will be a task to execute a stored procedure that generates the SQL and does the unload and purge 
+
+Im leaning towards first approach due to low cost, low maintenance but in a dilemma due to retry mechanism and parallel execution feature in step function.
+
+What do you suggest? Is there any better way to do this? ",0,siddu1221,2024-06-06 02:19:15,https://www.reddit.com/r/dataengineering/comments/1d97hvp/data_archival_strategy/,False,False,False,False
+1d96eke,Looking for Guidance from Peers and Seniors as a Data Engineer,2,"My title at work is Data Engineer, but I haven't really worked on pure data engineering projects. Although we use Hadoop, Spark, and SQL, I haven't had much hands-on experience with them. For the past 1.5 years since I joined, I have been building Python-based utilities that improve current processes or enable users to enhance their processes by utilizing these utilities. I have been wondering how this differs from the current expectations for a data engineer, where I am lacking, and what I can do to improve. I am looking for guidance and direction because I am confused about how my career will grow. I don't have any friends/peers in this domain who I can ask for guidance. Thank you!",0,throwaway_6942021253,2024-06-06 01:22:39,https://www.reddit.com/r/dataengineering/comments/1d96eke/looking_for_guidance_from_peers_and_seniors_as_a/,False,False,False,False
+1d8w0rk,"Introducing WherobotsAI for planetary inference, and capabilities that modernize spatial intelligence at scale",3,,0,lyonwj,2024-06-05 17:45:11,https://wherobots.com/wherobots-ai-spatial-sql-vector-tile-gen/,False,False,False,False
+1d8tp7q,My company wants me to learn/shift into Databricks/ADF. What to do?,3,"Hi Guys, 
+I'm a 22-year-old guy interested in Machine Learning/ Data science but got placed in a company as a Data Analyst( I'm a fresher). I got into a data extraction project where my work involves mostly writting SQL scripts and using internal data extraction tools of my company. But recently my project manager said that I'm no longer needed in the team as I was doing mostly support work and also told that there is requirment in Databricks,ADF projects and advised me to learn these so I can get into a project. He made it very clear that our company does not have any projects related to ML so my only option right now is to learn these inorder to work in a project . 
+What do you guys think I should do ? Any advice for a guy just starting his career ? ",7,EitherSmell8037,2024-06-05 16:08:53,https://www.reddit.com/r/dataengineering/comments/1d8tp7q/my_company_wants_me_to_learnshift_into/,False,False,False,False
+1d8rcb4,Data Trends 2024 Pod,3,"Interested to hear more about the latest research in trends for data tooling in 2024 and beyond? Look no further than this new podcast!! 
+
+Would appreciate your feedback!
+
+https://soundcloud.com/kevin-brendle-906943395/data-trends-2024",1,endlesssurfer93,2024-06-05 14:29:38,https://www.reddit.com/r/dataengineering/comments/1d8rcb4/data_trends_2024_pod/,False,False,False,False
+1d8pm1d,"Apache Doris but not Elasticsearch and InfluxDB, why?",3,,0,ApacheDoris,2024-06-05 13:12:53,https://doris.apache.org/zh-CN/blog/apache-doris-for-log-and-time-series-data-analysis-in-netease,False,False,False,False
+1d9et5v,Cloud Data Architecture,4,"Currently the company I work at are trying to understand what type of Architecture and tooling they want in the cloud(AWS). Mainly they want to be able to do both Batch and Near real-time analytics with the ability to have new columns auto ingested into the destination where possible. Has anyone had any experience in this preferably in AWS and what does it look like. Snowflake isn’t an option at this moment and our main skillset comes from SAS (legacy tool) so needs to be SQL based as EMR/Spark is also hard to hire in our country.
+
+For context our company are looking at using Glue as the ETL tool and Redshift/ Redshift spectrum as the data warehouse for consumption and archiving data to S3 so it’s not always hot in redshift. We don’t have a lot of data either (10-12 petabytes) so a data lake with something like S3 and Iceberg seems a bit overkill
+",0,Lubbox,2024-06-06 10:19:11,https://www.reddit.com/r/dataengineering/comments/1d9et5v/cloud_data_architecture/,False,False,False,False
+1d9ao5y,"Which Database is Best for Data Storage with Apache Spark: Cassandra, TiDB, or HDFS?",2,"Hi everyone,
+
+I'm currently using Apache Spark for data processing and I have access to Cassandra, TiDB, and HDFS for data storage. I'm trying to determine which of these options would provide the best performance for my use case. Could you provide some technical insights into which of these databases would offer the best performance and why?",2,Over-Drink8537,2024-06-06 05:23:26,https://www.reddit.com/r/dataengineering/comments/1d9ao5y/which_database_is_best_for_data_storage_with/,False,False,False,False
+1d8wycv,Allowing stakeholders write access to data warehouse,2,"How would you approach allowing stakeholders to insert data into tables in a data warehouse? I work at a medium-sized organization with a small IT department and a data team of 2. The organization is in its earliest stages of adopting a centralized data warehouse for its business needs (mostly BI). We'd originally envisioned it as a way for internal stakeholders to access data (read-only), but increasingly the question has come up about whether people in our organization will be able to write into tables. I'm a bit hesitant about opening up our platform to any kind of garbage data people create, so I want to go about this in a way that keeps the data warehouse from turning into a swamp of random spreadsheets.
+
+Here's an example. There's a department that manages a budget spreadsheet upon which we would run some computations. In our current setup, they have to email this budget to me and then I'd insert it into the database - checking schema and other quality aspects. Obviously, this is tedious and error-prone.
+
+In an ideal world, I'd setup an API with a POST endpoint for inserting data, but the tech literacy at my organization is quite low. Most people are comfortable with Excel and that's it. Another thought would be to build a small app where users could drag and drop a CSV and it would perform the validation and insert.
+
+In general, I'm curious if anyone has any suggestions for handling this kind of pattern. What guardrails would you put in place and how much would you enforce strict adherence to naming conventions etc?
+
+Our tech stack is Cloudera with an Impala data warehouse on top of a data lake in Azure. Our ETL pipelines run in Apache Nifi and scheduled R jobs.",6,whhipson,2024-06-05 18:23:21,https://www.reddit.com/r/dataengineering/comments/1d8wycv/allowing_stakeholders_write_access_to_data/,False,False,False,False
+1d9bl1p,How to deal with duplicates?,1,"I don't know if my question fits this sub, but here I go. 
+
+We read data from Mongodb using Debezium and produce to Kafka, thereafter we do some transformations using pyspark (structured streaming) and put the message in a separate topic in kafka. At the last step we ingest data into Clickhouse using its' official Kafka connector. 
+But we noticed that debezium creates duplicates (specially during the initial snapshot).
+
+We came up with an idea to use a window function (like 1 minute) in Pyspark and drop any duplicates. But this results in a lag equal to window lenght.
+A colleague proposed to use Redis to keep a hash of processed messages, but I've noticed that this is too slow.
+
+Any feedbacks would be appreciated :)",0,Ok-Newspaper-6281,2024-06-06 06:22:29,https://www.reddit.com/r/dataengineering/comments/1d9bl1p/how_to_deal_with_duplicates/,False,False,False,False
+1d918gt,Create lock mechanism for Azure Data Factory pipelines,1,"I have template pipeline **PROCESS\_RAW\_DATA**. It accepts **tableName** parameter, so I can run it for different tables. I have another template pipeline **GDPR** which also accepts **tableName.** Both pipelines will be scheduled somehow: by trigger, REST API call whatever. The goal is create mechanism that could allow block one pipeline when another with the same tableName parameter is running. Possible scenarios:
+
+**PROCESS\_RAW\_DATA**(table\_A) -> **GDPR** (table\_A)
+
+**GDPR** (table\_A) -> **PROCESS\_RAW\_DATA**(table\_A)
+
+They can't run in parrallel.
+
+My idea is:  
+1. When **GDPR** start, put a ""Block"" is Storage, then using Log Analytics query, check and ensure that no **PROCESS\_RAW\_DATA** for given table is running. If there is no with status running then we can start **GDPR** pipeline. Release Block when **GDPR** process completed.  
+2. Embed in each daily **PROCESS\_RAW\_DATA** to check ""Block"" before starting. This will ensure no daily load job will kick start when **GDPR** pipeline is running
+
+Hope I described it well.
+
+Summing up, I don't know what is the best way to implement locking mechaism for this use case",2,BigDataMax,2024-06-05 21:20:48,https://www.reddit.com/r/dataengineering/comments/1d918gt/create_lock_mechanism_for_azure_data_factory/,False,False,False,False
+1d8yryj,Leaving tech space,1,"Thought I would bring up this discussion in case there’s anyone in this sub that has left the data engineering/tech space. 
+Just curious to see if you thought it was worth leaving or did you end up coming right back after some time?",1,Caticus-McDrippy,2024-06-05 19:38:01,https://www.reddit.com/r/dataengineering/comments/1d8yryj/leaving_tech_space/,False,False,False,False
+1d8y6kg,Databricks merge mounted storage data in SQL query,1,"Hi guys
+
+I'm trying to select some json data from a mounted drive in Azure Databricks and merge it into a table in Azure SQL DB.
+
+I understand that the below won't work because it's ran on the SQL server and has no access to the mounted drive but is there some to reference the data in the storage container?
+
+I actually need to MERGE the data not insert it so I can't use a DataFrame.Write method.
+
+    sql_driver_manager=spark._sc._gateway.jvm.java.sql.DriverManager
+    con = sql_driver_manager.getConnection(connectionUrl)
+    
+    con.prepareCall(""""""
+    INSERT INTO dbo.Table1
+    SELECT
+    *
+    FROM
+    json.`/mnt/path/to/data`
+    
+    """""").execute()
+    con.close()",0,IG-55,2024-06-05 19:13:58,https://www.reddit.com/r/dataengineering/comments/1d8y6kg/databricks_merge_mounted_storage_data_in_sql_query/,False,False,False,False
+1d9ckp5,"My brain hurts. How the hell do you deal with really complicated data transformations, from one schema to another?",0,"**TL;DR: I know what I'm doing, but I have no idea what I'm doing, pls halp.**
+
+---
+
+Any help at all here would be greatly appreciated, because I feel like the magic and wonder of being mostly self-taught has seriously come back to bite me.
+
+My team and I have a massive data migration and mapping project in front of us, whereby we have to get data out of 100 tables (some of which have up to 200 columns…), and transform it into a new data structure and load it into our brand new system (for which we’ve designed the the database and API).
+
+Many of those 200 columns of data can be thrown out, as they’re just “utility columns” that only exist due to the limitations of the old system. Our new system uses Django and PostgreSQL so we can do `@property` decorators and computed columns much more easily.
+
+The old system was built on a low-code PaaS which used MongoDB under the hood, and we’ve managed to deal with that and at least get our data into BigQuery. But I have *no idea* what we’re meant to do with our data from this point.
+
+The big trick here is that a lot of the tables ~~are~~ (edit: WERE) very tightly linked with a lot of foreign keys (even where they didn’t need to be, for example a multiple choice field for “Yes” and “No” …). Wherever possible, we are trying to adjust the Django serializers so that you can just give it a string value and let the API work out the relevant object, but there’s still a need for custom transformation utilities. For example — we need to parse country names into their ISO code (e.g. Australia -\> AU, Japan -\> JP) so we have a little helper function for this.
+
+**My question is… what the hell do we do now?**
+
+Right now, we’re trying to write Jupyter notebooks and Python scripts where we’re processing Pandas/Polars dataframes manually, validating it using Pydantic models that are generated from the API schema, then sending it to the API. 
+
+And man, this process _sucks_.
+
+Not only is it extremely time-consuming; half the time, it fails when it gets to the API due to invalid JSON or some other similar reason.
+
+I have tried to get my head around using other tools like DuckDB, Spark, DBT, or Nifi, but it’s just not making any sense to me. DuckDB is the most promising but I can’t figure out how you would do this level of transformation by writing SQL statements. 
+
+The thing is, this ain’t my first rodeo. I’ve done this before in tools like Oracle Integration Cloud (and, my god, were there some limitations to work around!) and in FME. But for some reason — maybe because the datasets are too complicated? — my brain is just erroring out trying to do them this time around.
+
+(It’s also not helping that the term “data mapping” appears to be borderline ungoogleable…)
+
+Surely I have to be missing something here, so if you have any suggestions at all, they would be greatly appreciated.",0,beaufingers15,2024-06-06 07:33:03,https://www.reddit.com/r/dataengineering/comments/1d9ckp5/my_brain_hurts_how_the_hell_do_you_deal_with/,False,False,False,False
+1d9b482,Why can't everything be done using an ORM like Django or Ruby-on-Rails?,0,SQL is so ugly and unreadable. Why do we have to use it? It would be so much nicer to do everything through an ORM.,15,abelEngineer,2024-06-06 05:52:14,https://www.reddit.com/r/dataengineering/comments/1d9b482/why_cant_everything_be_done_using_an_orm_like/,False,False,False,False
