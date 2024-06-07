@@ -15,6 +15,12 @@ DATABASE_PORT =  parser.get(section='database', option='database_port')
 DATABASE_USER =  parser.get(section='database', option='database_username')
 DATABASE_PASSWORD =  parser.get(section='database', option='database_password')
 
+#GET AWS CREDS
+AWS_ACCESS_KEY_ID = parser.get(section='aws', option='aws_access_key_id')
+AWS_SECRET_KEY = parser.get(section='aws', option='aws_secret_access_key')
+AWS_REGION = parser.get(section='aws', option='aws_region')
+AWS_BUCKET_NAME = parser.get(section='aws', option='aws_bucket_name')
+
 INPUT_PATH = parser.get(section='file_paths', option='input_path')
 OUTPUT_PATH = parser.get(section='file_paths', option='output_path')
 
